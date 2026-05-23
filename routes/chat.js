@@ -1,13 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const Message = require('../models/Message');
+const { Message } = require('../db/client');   // ✅ Turso model
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
-// Configure file upload
+// Ensure upload directory exists
+const uploadDir = './uploads/chat/';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
-  destination: './uploads/chat/',
+  destination: uploadDir,
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, uniqueSuffix + path.extname(file.originalname));
@@ -24,50 +30,54 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: fileFilter
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter
 });
 
-// Upload file
+// Upload file (image or PDF)
 router.post('/upload', auth, upload.single('file'), async (req, res) => {
   try {
     const { room } = req.body;
     const file = req.file;
+    let messageType = file.mimetype === 'application/pdf' ? 'pdf' : 'image';
+    const messageId = Date.now().toString() + Math.random().toString(36).substring(7);
     
-    let messageType = 'image';
-    if (file.mimetype === 'application/pdf') {
-      messageType = 'pdf';
-    }
-    
-    const message = new Message({
+    await Message.insert({
+      _id: messageId,
       sender: req.user.id,
       text: req.body.text || '',
-      messageType: messageType,
+      messageType,
       fileUrl: `/uploads/chat/${file.filename}`,
       fileName: file.originalname,
       fileSize: file.size,
-      room: room
+      room: room,
+      createdAt: new Date().toISOString()
     });
     
-    await message.save();
-    await message.populate('sender', 'name');
-    res.json(message);
+    res.json({ 
+      _id: messageId, 
+      sender: req.user.id, 
+      text: req.body.text, 
+      messageType, 
+      fileUrl: `/uploads/chat/${file.filename}`, 
+      room,
+      createdAt: new Date().toISOString()
+    });
   } catch (err) {
-    res.status(500).send('Server error');
+    console.error('Upload error:', err);
+    res.status(500).json({ msg: 'Server error: ' + err.message });
   }
 });
 
-// Get messages (existing)
+// Get messages for a room (history)
 router.get('/messages/:room', auth, async (req, res) => {
   try {
-    const messages = await Message.find({ room: req.params.room })
-      .populate('sender', 'name')
-      .sort({ createdAt: 1 })
-      .limit(100);
-    res.json(messages);
+    const result = await Message.find({ room: req.params.room });
+    res.json(result.rows);
   } catch (err) {
-    res.status(500).send('Server error');
+    console.error(err);
+    res.status(500).json({ msg: 'Server error' });
   }
 });
 
