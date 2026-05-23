@@ -1,4 +1,4 @@
-const { Message } = require('../db/client');  // line 1 changed
+const { Message } = require('../db/client');
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
@@ -11,7 +11,7 @@ module.exports = (io) => {
     
     socket.on('send-message', async (data) => {
       try {
-        const { senderId, text, room, messageType, fileUrl, fileName, senderName } = data; // added senderName
+        const { senderId, text, room, messageType, fileUrl, fileName, senderName } = data;
         
         const messageId = Date.now().toString() + Math.random().toString(36).substring(7);
         
