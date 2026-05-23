@@ -1,4 +1,4 @@
-const Message = require('../models/Message');
+const { Message } = require('../db/client');  // line 1 changed
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
@@ -11,23 +11,37 @@ module.exports = (io) => {
     
     socket.on('send-message', async (data) => {
       try {
-        const { senderId, text, room, messageType, fileUrl, fileName } = data;
+        const { senderId, text, room, messageType, fileUrl, fileName, senderName } = data; // added senderName
         
-        const message = new Message({
+        const messageId = Date.now().toString() + Math.random().toString(36).substring(7);
+        
+        await Message.insert({
+          _id: messageId,
           sender: senderId,
           text: text || '',
+          room: room,
           messageType: messageType || 'text',
           fileUrl: fileUrl || '',
           fileName: fileName || '',
-          room: room
+          fileSize: 0,
+          createdAt: new Date().toISOString()
         });
         
-        await message.save();
-        const populatedMessage = await message.populate('sender', 'name');
+        const responseMessage = {
+          _id: messageId,
+          sender: senderId,
+          text: text || '',
+          room: room,
+          messageType: messageType || 'text',
+          fileUrl: fileUrl || '',
+          fileName: fileName || '',
+          createdAt: new Date().toISOString(),
+          senderName: senderName || 'User'
+        };
         
-        io.to(room).emit('receive-message', populatedMessage);
+        io.to(room).emit('receive-message', responseMessage);
       } catch (err) {
-        console.error(err);
+        console.error('Socket error:', err);
       }
     });
     
