@@ -1,0 +1,12 @@
+name = "bandhu-backend"
+main = "server.js"
+compatibility_date = "2024-01-01"
+
+# Environment variables for Cloudflare
+[vars]
+TURSO_CONNECTION_URL = "libsql://bandhu-db-anu359.aws-ap-south-1.turso.io"
+TURSO_AUTH_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3Nzk1MTYyNzMsImlkIjoiMDE5ZTUzNWYtMWIwMS03YmE3LTk1YzItNzM5OTc2NTdkYzg4IiwicmlkIjoiNTUyNGNkMjEtNTA5Zi00NDgyLWE5ZWEtMzdjOTZmNWRiNmY2In0.uTE8YZuWTXu8IwSjhePvbZMj-M_fBfiKLTfsePp4Tv9q8oJ94ipEVyZdRf5V25DhPUhGQl3w_zZ9pBnBiOxeCA"
+JWT_SECRET = "bandhu_super_secret_key_2024"
+
+[env.production]
+vars = { TURSO_CONNECTION_URL = "libsql://bandhu-db-anu359.aws-ap-south-1.turso.io", TURSO_AUTH_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3Nzk1MTYyNzMsImlkIjoiMDE5ZTUzNWYtMWIwMS03YmE3LTk1YzItNzM5OTc2NTdkYzg4IiwicmlkIjoiNTUyNGNkMjEtNTA5Zi00NDgyLWE5ZWEtMzdjOTZmNWRiNmY2In0.uTE8YZuWTXu8IwSjhePvbZMj-M_fBfiKLTfsePp4Tv9q8oJ94ipEVyZdRf5V25DhPUhGQl3w_zZ9pBnBiOxeCA", JWT_SECRET = "bandhu_super_secret_key_2024" }
